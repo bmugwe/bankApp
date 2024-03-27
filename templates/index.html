@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank App</title>
+    <style>
+        .form-container {
+            width: 300px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .form-container input {
+            margin-bottom: 10px;
+        }
+        p {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h1>Bank App </h1>
+    <p>Customer Details</p>
+    <p>Name: <strong> {{name}} </strong></p>
+    <p>ID: <strong> {{id}}  </strong></p>
+    <p>Balance : KES.  <strong> <span id="ui-balance"> {{balance}} </span> </strong></p>
+    <form id="bankForm">
+        {% csrf_token %}
+        <label>Enter Amount</label>
+        <input type="number" name="number_input" id="number_input" placeholder="Enter a amount">
+        <br>
+        <button type="submit" id="balance">Check Balance</button>
+        <button type="submit" id="deposit">Deposit</button>
+        <button type="submit" id="withdraw">Withdraw</button>
+    </form>
+    <p id="msg"></p>
+    <p></p>
+</div>
+
+
+<script>
+    document.getElementById('bankForm').addEventListener('submit', function(event) {
+        event.preventDefault(); 
+        
+        const amount = document.getElementById('number_input').value;
+        const buttonId = event.submitter.id; 
+        
+        if (buttonId === 'balance') {
+            location.reload()
+        } else if (buttonId === 'deposit') {
+            depositwithdraw(amount, 'deposit');
+        } else if (buttonId === 'withdraw') {
+            depositwithdraw(amount, 'withdraw');
+        }
+    });
+    
+    function depositwithdraw(amount, urls) {
+        const url = '/'+urls+'/';
+    
+        const body = JSON.stringify({ amount: amount });
+        console.log(body
+        )
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+    
+            },
+            body: body,
+        };    
+        fetch(url, options)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to deposit: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Deposit successful:', data);
+                document.getElementById('number_input').value('')
+                
+            })
+            .catch(error => {
+                console.error('Error depositing:', error);
+    
+                console.log('Failed to deposit: ' + error.message);
+            });
+    }
+    </script>
+</body>
+</html>
