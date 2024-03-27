@@ -78,14 +78,25 @@
                 return response.json();
             })
             .then(data => {
-                console.log('Deposit successful:', data);
-                document.getElementById('number_input').value('')
+                console.log('Deposit Status:', data);
+                let status = ""
+                {% comment %} location.reload() {% endcomment %}
+                if(data){
+                    if(data.error != undefined){
+                        status = data.error
+                    }else if (data.success != undefined){
+                        status = data.success
+                        document.getElementById('ui-balance').innerText = data.balance
+                    }
+                }
+                document.getElementById('msg').innerHTML = "Transaction Status:  " + status
                 
             })
             .catch(error => {
                 console.error('Error depositing:', error);
-    
+                
                 console.log('Failed to deposit: ' + error.message);
+                document.getElementById('msg').innerHTML = error.message
             });
     }
     </script>

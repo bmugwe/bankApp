@@ -89,13 +89,13 @@ def postdeposit(request):
     deposit = Deposit(amount=amount, customer=userInstance)
     deposit.save()
     getbalance = Balances.objects.get(customer=userInstance)
-
     newbal = getbalance.balance + amount
     getbalance.balance = newbal
     getbalance.save()
-    total_amount = Balances.objects.filter(id=userInstance.customer).aggregate(
-        total_amount=Sum("amount")
-    )["total_amount"]
+    getbalance.refresh_from_db()
+    print('Deposits saved')
+
+    total_amount = Balances.objects.get(id=userInstance.customer).balance
 
     return Response(
         {"success": "Deposit successful", "balance": total_amount},
@@ -108,7 +108,7 @@ def postwithdraw(request):
     user_id = 1
     userInstance = Customer.objects.get(customer=user_id)
 
-    withdrawal_amount = float(request.data.get("amount"))
+    withdrawal_amount = int(request.data.get("amount"))
 
     if withdrawal_amount <= 0:
         return Response({"error": "Invalid withdrawal amount"})
@@ -142,11 +142,15 @@ def postwithdraw(request):
 
     balance.balance = F("balance") - withdrawal_amount
     balance.save()
-    
+    balance.refresh_from_db()
+
     newbal = balance.balance
 
     withdrawal_transaction = Withdrawal.objects.create(
         customer=userInstance, amount=withdrawal_amount, created_at=timezone.now()
     )
 
-    return Response({"success": "Withdrawal successful", 'balance': newbal},  status=status.HTTP_201_CREATE)
+    return Response(
+        {"success": "Withdrawal successful", "balance": newbal},
+        status=status.HTTP_201_CREATED,
+    )
